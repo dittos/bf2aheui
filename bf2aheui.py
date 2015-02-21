@@ -12,7 +12,8 @@ def read_bf(code):
         if c in '><+-.,':
             current_block += c
         elif c == '[':
-            current_loop.append(current_block)
+            if current_block:
+                current_loop.append(current_block)
             current_block = ''
             loop_stack.append(current_loop)
             current_loop = []
@@ -55,11 +56,11 @@ def make_loop(body):
     height = len(body)
     width = len(body[0])
 
-    head = [u'삭뺘우차']
+    head = [u'뺘우차']
     for x in xrange(height - 1):
-        head.append(u'오ㅇ우ㅇ')
-    head.append(u'오ㅇ아아')
-    head.append(u'오어어어')
+        head.append(u'오우ㅇ')
+    head.append(u'오아아')
+    head.append(u'오어어')
 
     body.append(u'아' * width)
     body.append(u'어' * width)
@@ -68,26 +69,63 @@ def make_loop(body):
     for x in xrange(height - 1):
         tail.append(u'우오')
     tail.append(u'ㅇ오')
-    tail.append(u'어아')
+    tail.append(u'어ㅇ')
 
     return concat(concat(head, body), tail)
+
+def merge_repeat(s):
+    prev = None
+    count = 0
+    for c in s:
+        if prev != c:
+            if count:
+                yield (prev, count)
+            count = 0
+        count += 1
+        prev = c
+    if count:
+        yield (prev, count)
+
+AHEUI_NUM_EXPR = {
+    1: u'밪반타',
+    2: u'박',
+    3: u'받',
+    4: u'밤',
+    5: u'발',
+    6: u'밦',
+    7: u'밝',
+    8: u'밣',
+    9: u'밞',
+}
+
+def aheui_number(n):
+    postfix = u'다' if n > 0 else u'타'
+    expr = AHEUI_NUM_EXPR.get(abs(n))
+    if expr:
+        return expr + postfix
+    if abs(n) <= 18:
+        n1 = abs(n) // 2
+        n2 = abs(n) - n1
+        return AHEUI_NUM_EXPR[n1] + postfix + AHEUI_NUM_EXPR[n2] + postfix
+    # TODO: better algorithm
+    return (AHEUI_NUM_EXPR[1] + postfix) * abs(n)
 
 def compile_basic_block(block):
     assert isinstance(block, basestring)
     result = ''
-    for c in block:
+    for c, n in merge_repeat(block):
         if c == '+':
-            result += u'밪반타다'
+            result += aheui_number(n)
         elif c == '-':
-            result += u'밪반타타'
+            result += aheui_number(-n)
         elif c == '.':
-            result += u'빠맣'
+            result += u'빠맣' * n
         elif c == ',':
-            result += u'바밯'
+            result += u'마밯' * n
         elif c == '<':
-            result += u'샥바싼'
+            result += u'샥바싼' * n
         elif c == '>':
-            result += u'샨바싹삭'
+            result += u'샨바싹' * n + u'삭'
     return [result]
 
 def compile_blocks(blocks):
