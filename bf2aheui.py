@@ -1,5 +1,7 @@
 # coding: utf-8
 
+import argparse
+import io
 import sys
 
 def read_bf(code):
@@ -104,4 +106,16 @@ def compile_code(code):
     main = concat(main, [u'희'])
     return u'\n'.join(main)
 
-print compile_code(read_bf(sys.stdin.read()))
+parser = argparse.ArgumentParser()
+parser.add_argument('input', help="path of input Brainfuck file")
+parser.add_argument('-o', '--output', help="output path (default: stdout)", default='-')
+
+args = parser.parse_args()
+with open(args.input, 'r') as fp:
+    code = read_bf(fp.read())
+result = compile_code(code)
+if args.output == '-':
+    print result
+else:
+    with io.open(args.output, 'w', encoding='utf-8') as fp:
+        fp.write(result)
